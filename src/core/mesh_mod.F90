@@ -306,4 +306,5 @@ contains
     this%full_cos_lat(j) = this%half_cos_lat(this%half_lat_end_idx_no_pole) * 0.25_r8
 
   end subroutine reset_cos_lat_at_poles
+
 end module mesh_mod

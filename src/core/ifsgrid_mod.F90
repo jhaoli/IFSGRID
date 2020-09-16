@@ -1,4 +1,4 @@
-module ecgrid_mod
+module ifsgrid_mod
   
   use flogger
   use const_mod
@@ -11,15 +11,16 @@ module ecgrid_mod
   use tend_mod
   use history_mod
   use operators_mod
+  use ke_mod
   use debug_mod
 
   implicit none
 
   private
 
-  public ecgrid_init
-  public ecgrid_run
-  public ecgrid_final
+  public ifsgrid_init
+  public ifsgrid_run
+  public ifsgrid_final
 
   integer, parameter :: all_pass = 0
 
@@ -48,7 +49,7 @@ module ecgrid_mod
 
 contains
   
-  subroutine ecgrid_init()
+  subroutine ifsgrid_init()
     
     call log_init()
     call time_init()
@@ -70,9 +71,9 @@ contains
     
     call time_add_alert('print', hours=1.0_r8)
 
-  end subroutine ecgrid_init
+  end subroutine ifsgrid_init
   
-  subroutine ecgrid_run()
+  subroutine ifsgrid_run()
 
     call operators_prepare(states(old))
     call diagnose(states(old))
@@ -87,13 +88,13 @@ contains
       call output(states(old), tends(old))
     end do
 
-  end subroutine ecgrid_run
+  end subroutine ifsgrid_run
 
-  subroutine ecgrid_final()
+  subroutine ifsgrid_final()
   
     call parallel_final()
 
-  end subroutine ecgrid_final
+  end subroutine ifsgrid_final
 
   subroutine output(state, tend)
     
@@ -102,7 +103,7 @@ contains
 
     if (time_is_alerted('history_write')) then
       call history_write_state(static, state)
-      ! call history_write_debug(static, state, tend)
+      call history_write_debug(static, state, tend)
     end if
   end subroutine output
 
@@ -125,6 +126,8 @@ contains
 
     call log_add_diag('total_m' , state%total_m)
  
+    call calc_ke_on_cell(state)
+
     state%total_e = 0.0_r8
     do j = mesh%full_lat_start_idx, mesh%full_lat_end_idx
       do i = mesh%full_lon_start_idx, mesh%full_lon_end_idx
@@ -133,31 +136,31 @@ contains
     end do
     call log_add_diag('total_e' , state%total_e)
 
-    state%total_pv = 0.0_r8
-    do j = mesh%half_lat_start_idx_no_pole, mesh%half_lat_end_idx_no_pole
-      do i = mesh%half_lon_start_idx, mesh%half_lon_end_idx
-#ifdef V_POLE
-        vor = (state%v(i+1,j) - state%v(i,j)) / mesh%dlon - &
-              (state%u(i,j  ) * mesh%full_cos_lat(j  ) -&
-               state%u(i,j-1) * mesh%full_cos_lat(j-1)) / mesh%dlat                       
-        ! state%total_pv = state%total_pv + state%m_vtx(i,j) * state%pv(i,j) * mesh%half_cos_lat(j) * radius**2 * 
-#else
-        vor = (state%v(i+1,j) - state%v(i,j)) / mesh%dlon - &
-              (state%u(i,j+1) * mesh%full_cos_lat(j+1) -&
-               state%u(i,j  ) * mesh%full_cos_lat(j  )) / mesh%dlat
-#endif
-        state%total_pv = state%total_pv + vor * radius * mesh%dlon * mesh%dlat
-      end do
-    end do
-    ! call log_add_diag('total_pv' , state%total_pv)
+!     state%total_pv = 0.0_r8
+!     do j = mesh%half_lat_start_idx_no_pole, mesh%half_lat_end_idx_no_pole
+!       do i = mesh%half_lon_start_idx, mesh%half_lon_end_idx
+! #ifdef V_POLE
+!         vor = (state%v(i+1,j) - state%v(i,j)) / mesh%dlon - &
+!               (state%u(i,j  ) * mesh%full_cos_lat(j  ) -&
+!                state%u(i,j-1) * mesh%full_cos_lat(j-1)) / mesh%dlat                       
+!         ! state%total_pv = state%total_pv + state%m_vtx(i,j) * state%pv(i,j) * mesh%half_cos_lat(j) * radius**2 * 
+! #else
+!         vor = (state%v(i+1,j) - state%v(i,j)) / mesh%dlon - &
+!               (state%u(i,j+1) * mesh%full_cos_lat(j+1) -&
+!                state%u(i,j  ) * mesh%full_cos_lat(j  )) / mesh%dlat
+! #endif
+!         state%total_pv = state%total_pv + vor * radius * mesh%dlon * mesh%dlat
+!       end do
+!     end do
+!     ! call log_add_diag('total_pv' , state%total_pv)
 
-    state%total_pe = 0.0_r8
-    do j = mesh%half_lat_start_idx, mesh%half_lat_end_idx
-      do i = mesh%half_lon_start_idx, mesh%half_lon_end_idx
-        state%total_pe = state%total_pe + 0.5_r8 * state%m_vtx(i,j) * state%pv(i,j)**2 * g * mesh%half_cos_lat(j) * radius**2 * mesh%dlon * mesh%dlat
-      end do
-    end do
-    call log_add_diag('total_pe' , state%total_pe)
+     state%total_pe = 0.0_r8
+     do j = mesh%half_lat_start_idx, mesh%half_lat_end_idx
+       do i = mesh%half_lon_start_idx, mesh%half_lon_end_idx
+         state%total_pe = state%total_pe + 0.5_r8 * (state%vor(i,j) + mesh%half_f(j))**2 / state%m_vtx(i,j) * mesh%half_cos_lat(j) * radius**2 * mesh%dlon * mesh%dlat
+       end do
+     end do
+     call log_add_diag('total_pe' , state%total_pe)
 
   end subroutine diagnose
 
@@ -175,28 +178,22 @@ contains
 
     mesh => state%mesh
 
-    select case (coriolis_scheme)
-    case (1)
-      call calc_qhu_qhv(state, tend, dt)
-    case (2)
-      call calc_qhu_qhv_2(state, tend, dt)
-    case default
-      call calc_qhu_qhv_2(state, tend, dt)
-    end select
-      
-    call calc_dkedlon_dkedlat(state, tend, dt)
-    call calc_dpedlon_dpedlat(static, state, tend, dt)
+    call calc_uv_adv(state, tend, dt)
+    call calc_v_sinuv(state, tend, dt)
+    call calc_fv_fu(state, tend, dt)
+    call calc_uv_pgf(state, static, tend, dt)
     call calc_dmfdlon_dmfdlat(state, tend, dt)
 
     do j = mesh%full_lat_start_idx_no_pole, mesh%full_lat_end_idx_no_pole
       do i = mesh%half_lon_start_idx, mesh%half_lon_end_idx
-        tend%du(i,j) =   tend%qhv(i,j) - tend%dpedlon(i,j) - tend%dkedlon(i,j)
+        tend%du(i,j) = -tend%u_adv_lon(i,j) - tend%u_adv_lat(i,j) + tend%fv(i,j) - tend%u_pgf(i,j)
       end do
     end do
 
     do j = mesh%half_lat_start_idx_no_pole, mesh%half_lat_end_idx_no_pole
       do i = mesh%full_lon_start_idx, mesh%full_lon_end_idx
-        tend%dv(i,j) = - tend%qhu(i,j) - tend%dpedlat(i,j) - tend%dkedlat(i,j)
+        tend%dv(i,j) = - tend%v_adv_lon(i,j) - tend%v_adv_lat(i,j) -&
+                    tend%v_sinuv(i,j) - tend%fu(i,j) - tend%v_pgf(i,j)
       end do
     end do
 
@@ -206,7 +203,7 @@ contains
       end do
     end do
   
-    ! call debug_check_space_operators(static, state, tend)
+   ! call debug_check_space_operators(static, state, tend)
 
   end subroutine space_operators
 
@@ -331,7 +328,7 @@ contains
     mesh => old_state%mesh
 
     do j = mesh%full_lat_start_idx, mesh%full_lat_end_idx
-    	do i = mesh%full_lon_start_idx, mesh%full_lon_end_idx
+      do i = mesh%full_lon_start_idx, mesh%full_lon_end_idx
         new_state%gd(i,j) = old_state%gd(i,j) + dt * tend%dgd(i,j)
       end do
     end do
@@ -353,4 +350,4 @@ contains
 
   end subroutine update_state
 
-end module ecgrid_mod
+end module ifsgrid_mod

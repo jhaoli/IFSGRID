@@ -40,7 +40,7 @@ contains
 
   do j = mesh%full_lat_start_idx, mesh%full_lat_end_idx
     do i = mesh%half_lon_start_idx, mesh%half_lon_end_idx
-      state%u(i,j) = u_function(mesh%full_lat(j))
+      state%u(i,j) = u_function(mesh%full_lat(j)) * mesh%full_cos_lat(j)
     end do
   end do
   call parallel_fill_halo(mesh, state%u)

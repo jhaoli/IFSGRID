@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
 
-project(ecgrid LANGUAGES Fortran)
+project(ifsgrid LANGUAGES Fortran)
 
 option(V_POLE "Stagger V on the pole" OFF)
 
@@ -62,9 +62,9 @@ set(source_files
   src/core/static_mod.F90
   src/core/tend_mod.F90
   src/core/operators_mod.F90
-  src/core/pv_mod.F90
+  #  src/core/pv_mod.F90
   src/core/ke_mod.F90
-  src/core/ecgrid_mod.F90
+  src/core/ifsgrid_mod.F90
   src/tests/swm/steady_geostrophic_flow_test_mod.F90
   src/tests/swm/mountain_zonal_flow_test_mod.F90
   src/tests/swm/rossby_haurwitz_wave_test_mod.F90
@@ -73,8 +73,8 @@ set(source_files
   lib/quadpack.f90
 )
 
-add_library(ecgrid ${source_files})
-target_link_libraries(ecgrid netcdf netcdff fortran_container fortran_datetime fiona flogger ${MPI_Fortran_LIBRARIES} ${lapackblas_libraries} lapack blas)
+add_library(ifsgrid ${source_files})
+target_link_libraries(ifsgrid netcdf netcdff fortran_container fortran_datetime fiona flogger ${MPI_Fortran_LIBRARIES} ${lapackblas_libraries} lapack blas)
 
-add_executable(ecgrid_swm_driver.exe src/drivers/ecgrid_swm_driver.F90)
-target_link_libraries(ecgrid_swm_driver.exe ecgrid)
+add_executable(ifsgrid_swm_driver.exe src/drivers/ifsgrid_swm_driver.F90)
+target_link_libraries(ifsgrid_swm_driver.exe ifsgrid)

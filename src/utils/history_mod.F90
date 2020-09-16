@@ -61,11 +61,11 @@ contains
     call fiona_add_dim('h0', 'lat'  , size=mesh%num_full_lat, add_var=.true.)
     call fiona_add_dim('h0', 'ilon' , size=mesh%num_half_lon, add_var=.true.)
     call fiona_add_dim('h0', 'ilat' , size=mesh%num_half_lat, add_var=.true.)
-    call fiona_add_var('h0', 'u'    , long_name='u wind component'           , units='m s-1' , dim_names=['lon ', 'lat ', 'time'])
-    call fiona_add_var('h0', 'v'    , long_name='v wind component'           , units='m s-1' , dim_names=['lon ', 'lat ', 'time'])
+    call fiona_add_var('h0', 'u'    , long_name='u wind component'           , units='m s-1' , dim_names=['ilon', 'lat ', 'time'])
+    call fiona_add_var('h0', 'v'    , long_name='v wind component'           , units='m s-1' , dim_names=['lon ', 'ilat', 'time'])
     call fiona_add_var('h0', 'h'    , long_name='height'                     , units='m    ' , dim_names=['lon ', 'lat ', 'time'])
     call fiona_add_var('h0', 'hs'   , long_name='surface height'             , units='m    ' , dim_names=['lon ', 'lat ', 'time'])
-    call fiona_add_var('h0', 'pv'   , long_name='potential vorticity'        , units='s-1  ' , dim_names=['ilon', 'ilat', 'time'])
+    call fiona_add_var('h0', 'vor'  , long_name='relative vorticity'         , units='s-1  ' , dim_names=['ilon', 'ilat', 'time'])
     call fiona_add_var('h0', 'tm'   , long_name='total mass         '        , units='m    ' , dim_names=['time'])
     call fiona_add_var('h0', 'te'   , long_name='total energy       '        , units='m4 s-4', dim_names=['time'], data_type='real(8)')
     call fiona_add_var('h0', 'tpe'  , long_name='total potential enstrophy'  , units='m2 s-5', dim_names=['time'], data_type='real(8)')
@@ -78,27 +78,24 @@ contains
     call fiona_add_dim('h1', 'lat'      , size=mesh%num_full_lat, add_var=.true.)
     call fiona_add_dim('h1', 'ilon'     , size=mesh%num_half_lon, add_var=.true.)
     call fiona_add_dim('h1', 'ilat'     , size=mesh%num_half_lat, add_var=.true.)
-    call fiona_add_var('h1', 'qhv'      , long_name='nonliear zonal Coriolis force'                , units='m s-2'  , dim_names=['ilon', 'lat ', 'time'])
-    call fiona_add_var('h1', 'qhu'      , long_name='nonliear meridional Coriolis force'           , units='m s-2'  , dim_names=['lon ', 'ilat', 'time'])
-    call fiona_add_var('h1', 'dpedlon'  , long_name='zonal geopotential energy gradient force'     , units=''       , dim_names=['ilon', 'lat ', 'time'])
-    call fiona_add_var('h1', 'dkedlon'  , long_name='zonal kinetic energy gradient force'          , units=''       , dim_names=['ilon', 'lat ', 'time'])
-    call fiona_add_var('h1', 'dpedlat'  , long_name='meridional geopotential energy gradient force', units=''       , dim_names=['lon ', 'ilat', 'time'])
-    call fiona_add_var('h1', 'dkedlat'  , long_name='meridional kinetic energy gradient force'     , units=''       , dim_names=['lon ', 'ilat', 'time'])
-    call fiona_add_var('h1', 'dmfdlon'  , long_name='zonal mass flux divergence'                   , units=''       , dim_names=['lon ', 'lat ', 'time'])
-    call fiona_add_var('h1', 'dmfdlat'  , long_name='meridional mass flux divergence'              , units=''       , dim_names=['lon ', 'lat ', 'time'])
-    call fiona_add_var('h1', 'us'       , long_name='staggered u wind component'                   , units='m s-1'  , dim_names=['ilon', 'lat ', 'time'])
-    call fiona_add_var('h1', 'vs'       , long_name='staggered v wind component'                   , units='m s-1'  , dim_names=['lon ', 'ilat', 'time'])
-    call fiona_add_var('h1', 'hv'       , long_name='mass on vertices'                             , units='m'      , dim_names=['ilon', 'ilat', 'time'])
-    call fiona_add_var('h1', 'mf_lon_n' , long_name='normal mass flux on U grid'                   , units='m2 s-1' , dim_names=['ilon', 'lat ', 'time'])
-    call fiona_add_var('h1', 'mf_lon_t' , long_name='tangent mass flux on U grid'                  , units='m2 s-1' , dim_names=['ilon', 'lat ', 'time'])
-    call fiona_add_var('h1', 'mf_lat_n' , long_name='normal mass flux on V grid'                   , units='m2 s-1' , dim_names=['lon ', 'ilat', 'time'])
-    call fiona_add_var('h1', 'mf_lat_t' , long_name='tangent mass flux on V grid'                  , units='m2 s-1' , dim_names=['lon ', 'ilat', 'time'])
-    call fiona_add_var('h1', 'pv_lon'   , long_name='pv on U grid'                                 , units='m-1 s-1', dim_names=['ilon', 'lat ', 'time'])
-    call fiona_add_var('h1', 'pv_lat'   , long_name='pv on V grid'                                 , units='m-1 s-1', dim_names=['lon ', 'ilat', 'time'])
-    call fiona_add_var('h1', 'ke'       , long_name='kinetic energy on cell grid'                  , units='',        dim_names=['lon ', 'lat ', 'time'])
+    call fiona_add_var('h1', 'u_adv_lon', long_name='u component zonal advection '                 , units=''       , dim_names=['ilon', 'lat ', 'time'])
+    call fiona_add_var('h1', 'u_adv_lat', long_name='u component meridional advection '            , units=''       , dim_names=['ilon', 'lat ', 'time'])
+    call fiona_add_var('h1', 'fv'       , long_name='zonal Coriolis force'                         , units='m s-2'  , dim_names=['ilon', 'lat ', 'time'])
+    call fiona_add_var('h1', 'u_pgf'    , long_name='zonal pressure gradient force'                , units=''       , dim_names=['ilon', 'lat ', 'time'])
+    
+    call fiona_add_var('h1', 'v_adv_lon', long_name='v component zonal advection'                  , units=''       , dim_names=['lon ', 'ilat', 'time'])
+    call fiona_add_var('h1', 'v_adv_lat', long_name='v component meridional advection'             , units=''       , dim_names=['lon ', 'ilat', 'time'])
+    call fiona_add_var('h1', 'v_sinuv'  , long_name='v component sine U V'                         , units=''       , dim_names=['lon ', 'ilat', 'time'])
+    call fiona_add_var('h1', 'fu'       , long_name='meridional Coriolis force'                    , units='m s-2'  , dim_names=['lon ', 'ilat', 'time'])
+    call fiona_add_var('h1', 'v_pgf'    , long_name='meridional pressure gradient force'           , units='     '  , dim_names=['lon ', 'ilat', 'time'])
 
-    if (.not. allocated(u )) call allocate_array(mesh, u )
-    if (.not. allocated(v )) call allocate_array(mesh, v )
+    call fiona_add_var('h1', 'dmfdlon'  , long_name='zonal normal mass flux'                       , units='m2 s-1' , dim_names=['lon ', 'lat ', 'time'])
+    call fiona_add_var('h1', 'dmfdlat'  , long_name='meridional normal mass flux'                  , units='m2 s-1' , dim_names=['lon ', 'lat ', 'time'])
+
+    ! call fiona_add_var('h1', 'us'       , long_name='staggered u wind component'                   , units='m s-1'  , dim_names=['ilon', 'lat ', 'time'])
+    ! call fiona_add_var('h1', 'vs'       , long_name='staggered v wind component'                   , units='m s-1'  , dim_names=['lon ', 'ilat', 'time'])
+    if (.not. allocated(u )) call allocate_array(mesh, u , half_lon=.true., full_lat=.true.)
+    if (.not. allocated(v )) call allocate_array(mesh, v , full_lon=.true., half_lat=.true.)
     if (.not. allocated(h )) call allocate_array(mesh, h )
     if (.not. allocated(hs)) call allocate_array(mesh, hs)
     
@@ -127,31 +124,38 @@ contains
     ! Convert wind from C grid to A grid 
     do j = state%mesh%full_lat_start_idx, state%mesh%full_lat_end_idx
       do i = state%mesh%full_lon_start_idx, state%mesh%full_lon_end_idx
-#ifdef V_POLE
-        v(i,j) = 0.5_r8 * (state%v(i,j) + state%v(i,j+1))
-#else
-        v(i,j) = 0.5_r8 * (state%v(i,j) + state%v(i,j-1))
-#endif
-        u(i,j) = 0.5_r8 * (state%u(i,j) + state%u(i-1,j))
+! #ifdef V_POLE
+!         v(i,j) = 0.5_r8 * (state%v(i,j) + state%v(i,j+1)) / mesh%full_cos_lat(j)
+! #else
+!         v(i,j) = 0.5_r8 * (state%v(i,j) + state%v(i,j-1)) / mesh%full_cos_lat(j)
+! #endif
+!         u(i,j) = 0.5_r8 * (state%u(i,j) + state%u(i-1,j)) / mesh%full_cos_lat(j)
         h(i,j) = (state%gd(i,j) + static%ghs(i,j)) / g
         hs(i,j) = static%ghs(i,j) / g
       end do
     end do
-    
+    do j = state%mesh%full_lat_start_idx_no_pole, state%mesh%full_lat_end_idx_no_pole
+      u(:,j) = state%u(:,j) / state%mesh%full_cos_lat(j)
+    end do
+    do j = state%mesh%half_lat_start_idx_no_pole, state%mesh%half_lat_end_idx_no_pole
+      v(:,j) = state%v(:,j) / state%mesh%half_cos_lat(j)
+    end do
+
     call fiona_start_output('h0', elapsed_seconds, new_file=time_step == 0)
     call fiona_output('h0', 'lon' , mesh%full_lon_deg(1:mesh%num_full_lon))
     call fiona_output('h0', 'lat' , mesh%full_lat_deg(1:mesh%num_full_lat))
     call fiona_output('h0', 'ilon', mesh%half_lon_deg(1:mesh%num_half_lon))
     call fiona_output('h0', 'ilat', mesh%half_lat_deg(1:mesh%num_half_lat))
-    call fiona_output('h0', 'u'   , u                (1:mesh%num_full_lon,1:mesh%num_full_lat))
-    call fiona_output('h0', 'v'   , v                (1:mesh%num_full_lon,1:mesh%num_full_lat))
-    call fiona_output('h0', 'h'   , h                (1:mesh%num_full_lon,1:mesh%num_full_lat))
-    call fiona_output('h0', 'hs'  , hs               (1:mesh%num_full_lon,1:mesh%num_full_lat))
-    call fiona_output('h0', 'pv'  , state%pv         (1:mesh%num_half_lon,1:mesh%num_half_lat))
-    call fiona_output('h0', 'tm'  , state%total_m)
-    call fiona_output('h0', 'te'  , state%total_e)
-    call fiona_output('h0', 'tpe' , state%total_pe)
-    call fiona_output('h0', 'tpv' , state%total_pv)
+    call fiona_output('h0', 'u'   , u        (1:mesh%num_half_lon,1:mesh%num_full_lat))
+    call fiona_output('h0', 'v'   , v        (1:mesh%num_full_lon,1:mesh%num_half_lat))
+    call fiona_output('h0', 'h'   , h        (1:mesh%num_full_lon,1:mesh%num_full_lat))
+    call fiona_output('h0', 'hs'  , hs       (1:mesh%num_full_lon,1:mesh%num_full_lat))
+    call fiona_output('h0', 'vor' , state%vor(1:mesh%num_half_lon,1:mesh%num_half_lat))
+    !    call fiona_output('h0', 'pv'  , state%pv         (1:mesh%num_half_lon,1:mesh%num_half_lat))
+        call fiona_output('h0', 'tm'  , state%total_m)
+       call fiona_output('h0', 'te'  , state%total_e)
+       call fiona_output('h0', 'tpe' , state%total_pe)
+    !    call fiona_output('h0', 'tpv' , state%total_pv)
     call fiona_end_output('h0')
 
   end subroutine history_write_state
@@ -167,22 +171,19 @@ contains
     call fiona_output('h1', 'lat'      , mesh%full_lat_deg(1:mesh%num_full_lat))
     call fiona_output('h1', 'ilon'     , mesh%half_lon_deg(1:mesh%num_half_lon))
     call fiona_output('h1', 'ilat'     , mesh%half_lat_deg(1:mesh%num_half_lat))
-    call fiona_output('h1', 'qhv'      , tend%qhv         (1:mesh%num_half_lon,1:mesh%num_full_lat))
-    call fiona_output('h1', 'qhu'      , tend%qhu         (1:mesh%num_full_lon,1:mesh%num_half_lat))
-    call fiona_output('h1', 'dpedlon'  , tend%dpedlon     (1:mesh%num_half_lon,1:mesh%num_full_lat))
-    call fiona_output('h1', 'dkedlon'  , tend%dkedlon     (1:mesh%num_half_lon,1:mesh%num_full_lat))
-    call fiona_output('h1', 'dpedlat'  , tend%dpedlat     (1:mesh%num_half_lon,1:mesh%num_full_lat))
-    call fiona_output('h1', 'dkedlat'  , tend%dkedlat     (1:mesh%num_half_lon,1:mesh%num_full_lat))
-    call fiona_output('h1', 'dmfdlon'  , tend%dmfdlon     (1:mesh%num_full_lon,1:mesh%num_full_lat))
-    call fiona_output('h1', 'dmfdlat'  , tend%dmfdlat     (1:mesh%num_full_lon,1:mesh%num_full_lat))
-    call fiona_output('h1', 'us'       , state%u          (1:mesh%num_half_lon,1:mesh%num_full_lat))
-    call fiona_output('h1', 'vs'       , state%v          (1:mesh%num_full_lon,1:mesh%num_half_lat))
-    call fiona_output('h1', 'hv'       , state%m_vtx      (1:mesh%num_half_lon,1:mesh%num_half_lat))
-    call fiona_output('h1', 'mf_lon_n' , state%mf_lon_n   (1:mesh%num_half_lon,1:mesh%num_full_lat))
-    call fiona_output('h1', 'mf_lat_n' , state%mf_lat_n   (1:mesh%num_full_lon,1:mesh%num_half_lat))
-    call fiona_output('h1', 'pv_lon'   , state%pv_lon     (1:mesh%num_half_lon,1:mesh%num_full_lat))
-    call fiona_output('h1', 'pv_lat'   , state%pv_lat     (1:mesh%num_full_lon,1:mesh%num_half_lat))
-    call fiona_output('h1', 'ke'       , state%ke         (1:mesh%num_full_lon,1:mesh%num_full_lat))
+    call fiona_output('h1', 'u_adv_lon', tend%u_adv_lon(1:mesh%num_half_lon,1:mesh%num_full_lat))
+    call fiona_output('h1', 'u_adv_lat', tend%u_adv_lat(1:mesh%num_half_lon,1:mesh%num_full_lat))
+    call fiona_output('h1', 'fv'       , tend%fv       (1:mesh%num_half_lon,1:mesh%num_full_lat))
+    call fiona_output('h1', 'u_pgf'    , tend%u_pgf    (1:mesh%num_half_lon,1:mesh%num_full_lat))
+    call fiona_output('h1', 'v_adv_lon', tend%v_adv_lon(1:mesh%num_full_lon,1:mesh%num_half_lat))
+    call fiona_output('h1', 'v_adv_lat', tend%v_adv_lat(1:mesh%num_full_lon,1:mesh%num_half_lat))
+    call fiona_output('h1', 'v_sinuv'  , tend%v_sinuv  (1:mesh%num_full_lon,1:mesh%num_half_lat))
+    call fiona_output('h1', 'fu'       , tend%fu       (1:mesh%num_full_lon,1:mesh%num_half_lat))
+    call fiona_output('h1', 'v_pgf'    , tend%v_pgf    (1:mesh%num_full_lon,1:mesh%num_half_lat))
+    ! call fiona_output('h1', 'us'       , state%u       (1:mesh%num_half_lon,1:mesh%num_full_lat))
+    ! call fiona_output('h1', 'vs'       , state%v       (1:mesh%num_full_lon,1:mesh%num_half_lat))
+    call fiona_output('h1', 'dmfdlon'  , tend%dmfdlon  (1:mesh%num_full_lon,1:mesh%num_full_lat))
+    call fiona_output('h1', 'dmfdlat'  , tend%dmfdlat  (1:mesh%num_full_lon,1:mesh%num_full_lat))
     call fiona_end_output('h1')
 
   end subroutine history_write_debug

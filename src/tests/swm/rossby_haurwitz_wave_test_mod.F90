@@ -52,7 +52,7 @@ contains
         a = cos_lat
         b = R * cos_lat**(R - 1) * sin_lat**2 * cos(R * lon)
         c = cos_lat**(R + 1) * cos(R * lon)
-        state%u(i,j) = radius * omg * (a + b - c)
+        state%u(i,j) = radius * omg * (a + b - c) * mesh%full_cos_lat(j)
       end do
     end do
     call parallel_fill_halo(mesh, state%u)
@@ -63,7 +63,7 @@ contains
       do i = mesh%full_lon_start_idx, mesh%full_lon_end_idx
         lon = mesh%full_lon(i)
         a = R * cos_lat**(R - 1) * sin_lat * sin(R * lon)
-        state%v(i,j) = - radius * omg * a
+        state%v(i,j) = - radius * omg * a * mesh%half_cos_lat(j)
       end do
     end do
     call parallel_fill_halo(mesh, state%v)

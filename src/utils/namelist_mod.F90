@@ -16,7 +16,7 @@ module namelist_mod
   character(30) :: time_scheme  = 'pc2'
   integer       :: coriolis_scheme = 2
 
-  namelist /ecgrid_swm_control/ &
+  namelist /ifsgrid_swm_control/ &
     case_name                 , &
     case_desc                 , &
     test_case                 , &
@@ -35,7 +35,7 @@ contains
     character(*), intent(in) :: file_path
 
     open(10, file=file_path, status='old')
-    read(10, nml=ecgrid_swm_control)
+    read(10, nml=ifsgrid_swm_control)
     close(10) 
 
   end subroutine parse_namelist

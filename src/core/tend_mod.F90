@@ -20,12 +20,15 @@ module tend_mod
     real(r8), allocatable, dimension(:,:) :: dv
     real(r8), allocatable, dimension(:,:) :: dgd
     ! Individual tendencies
-    real(r8), allocatable, dimension(:,:) :: qhv
-    real(r8), allocatable, dimension(:,:) :: qhu
-    real(r8), allocatable, dimension(:,:) :: dpedlon
-    real(r8), allocatable, dimension(:,:) :: dkedlon
-    real(r8), allocatable, dimension(:,:) :: dpedlat
-    real(r8), allocatable, dimension(:,:) :: dkedlat
+    real(r8), allocatable, dimension(:,:) :: u_adv_lon
+    real(r8), allocatable, dimension(:,:) :: u_adv_lat
+    real(r8), allocatable, dimension(:,:) :: fv
+    real(r8), allocatable, dimension(:,:) :: u_pgf
+    real(r8), allocatable, dimension(:,:) :: v_adv_lon
+    real(r8), allocatable, dimension(:,:) :: v_adv_lat
+    real(r8), allocatable, dimension(:,:) :: v_sinuv
+    real(r8), allocatable, dimension(:,:) :: fu
+    real(r8), allocatable, dimension(:,:) :: v_pgf
     real(r8), allocatable, dimension(:,:) :: dmfdlon
     real(r8), allocatable, dimension(:,:) :: dmfdlat
   contains
@@ -70,34 +73,40 @@ contains
 
     this%mesh => mesh
 
-    call allocate_array(mesh, this%du     , half_lon=.true., full_lat=.true.)
-    call allocate_array(mesh, this%dv     , full_lon=.true., half_lat=.true.)
-    call allocate_array(mesh, this%dgd    , full_lon=.true., full_lat=.true.)
-    call allocate_array(mesh, this%qhu    , full_lon=.true., half_lat=.true.)
-    call allocate_array(mesh, this%qhv    , half_lon=.true., full_lat=.true.)
-    call allocate_array(mesh, this%dpedlon, half_lon=.true., full_lat=.true.)
-    call allocate_array(mesh, this%dkedlon, half_lon=.true., full_lat=.true.)
-    call allocate_array(mesh, this%dpedlat, full_lon=.true., half_lat=.true.)
-    call allocate_array(mesh, this%dkedlat, full_lon=.true., half_lat=.true.)
-    call allocate_array(mesh, this%dmfdlon, full_lon=.true., full_lat=.true.)
-    call allocate_array(mesh, this%dmfdlat, full_lon=.true., full_lat=.true.)
+    call allocate_array(mesh, this%du        , half_lon=.true., full_lat=.true.)
+    call allocate_array(mesh, this%dv        , full_lon=.true., half_lat=.true.)
+    call allocate_array(mesh, this%dgd       , full_lon=.true., full_lat=.true.)
+    call allocate_array(mesh, this%u_adv_lon , half_lon=.true., full_lat=.true.)
+    call allocate_array(mesh, this%u_adv_lat , half_lon=.true., full_lat=.true.)
+    call allocate_array(mesh, this%fv        , half_lon=.true., full_lat=.true.)
+    call allocate_array(mesh, this%u_pgf     , half_lon=.true., full_lat=.true.)
+    call allocate_array(mesh, this%v_adv_lon , full_lon=.true., half_lat=.true.)
+    call allocate_array(mesh, this%v_adv_lat , full_lon=.true., half_lat=.true.)
+    call allocate_array(mesh, this%v_sinuv   , full_lon=.true., half_lat=.true.)
+    call allocate_array(mesh, this%fu        , full_lon=.true., half_lat=.true.)
+    call allocate_array(mesh, this%v_pgf     , full_lon=.true., half_lat=.true.)
+    call allocate_array(mesh, this%dmfdlon   , full_lon=.true., full_lat=.true.)
+    call allocate_array(mesh, this%dmfdlat   , full_lon=.true., full_lat=.true.)
   end subroutine tend_init
 
   subroutine tend_clear(this)
     
     class(tend_type), intent(inout) :: this
 
-    if (allocated(this%du     )) deallocate(this%du     )
-    if (allocated(this%dv     )) deallocate(this%dv     )
-    if (allocated(this%dgd    )) deallocate(this%dgd    )
-    if (allocated(this%qhu    )) deallocate(this%qhu    )
-    if (allocated(this%qhv    )) deallocate(this%qhv    )
-    if (allocated(this%dpedlon)) deallocate(this%dpedlon)
-    if (allocated(this%dpedlon)) deallocate(this%dkedlon)
-    if (allocated(this%dkedlat)) deallocate(this%dpedlat)
-    if (allocated(this%dkedlat)) deallocate(this%dkedlat)
-    if (allocated(this%dmfdlon)) deallocate(this%dmfdlon)
-    if (allocated(this%dmfdlat)) deallocate(this%dmfdlat)
+    if (allocated(this%du        )) deallocate(this%du        )
+    if (allocated(this%dv        )) deallocate(this%dv        )
+    if (allocated(this%dgd       )) deallocate(this%dgd       )
+    if (allocated(this%u_adv_lon )) deallocate(this%u_adv_lon )
+    if (allocated(this%u_adv_lat )) deallocate(this%u_adv_lat )
+    if (allocated(this%fv        )) deallocate(this%fv        )
+    if (allocated(this%u_pgf     )) deallocate(this%u_pgf     )
+    if (allocated(this%v_adv_lon )) deallocate(this%v_adv_lon )
+    if (allocated(this%v_adv_lat )) deallocate(this%v_adv_lat )
+    if (allocated(this%v_sinuv   )) deallocate(this%v_sinuv   )
+    if (allocated(this%fu        )) deallocate(this%fu        )
+    if (allocated(this%v_pgf     )) deallocate(this%v_pgf     )
+    if (allocated(this%dmfdlon   )) deallocate(this%dmfdlon   )
+    if (allocated(this%dmfdlat   )) deallocate(this%dmfdlat   )
 
   end subroutine tend_clear
 

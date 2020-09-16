@@ -51,7 +51,7 @@ contains
       sin_lat = mesh%full_sin_lat(j)
       do i = mesh%half_lon_start_idx, mesh%half_lon_end_idx
         cos_lon = mesh%half_cos_lon(i)
-        state%u(i,j) = u0 * (cos_lat * cos_alpha + cos_lon * sin_lat * sin_alpha)
+        state%u(i,j) = u0 * (cos_lat * cos_alpha + cos_lon * sin_lat * sin_alpha) * mesh%full_cos_lat(j)
       end do
     end do
     call parallel_fill_halo(mesh, state%u)
@@ -59,7 +59,7 @@ contains
     do j = mesh%half_lat_start_idx, mesh%half_lat_end_idx
       do i = mesh%full_lon_start_idx, mesh%full_lon_end_idx
         sin_lon = mesh%full_sin_lon(i)
-        state%v(i,j) = - u0 * sin_lon * sin_alpha
+        state%v(i,j) = - u0 * sin_lon * sin_alpha * mesh%half_cos_lat(j)
       end do
     end do
     call parallel_fill_halo(mesh, state%v)

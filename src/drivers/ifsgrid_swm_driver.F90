@@ -1,10 +1,10 @@
-program ecgrid_swm_driver
+program ifsgrid_swm_driver
 
   use log_mod
   use namelist_mod
   use static_mod
   use state_mod
-  use ecgrid_mod
+  use ifsgrid_mod
   use steady_geostrophic_flow_test_mod
   use mountain_zonal_flow_test_mod
   use rossby_haurwitz_wave_test_mod
@@ -31,7 +31,7 @@ program ecgrid_swm_driver
   end if 
 
   call parse_namelist(namelist_file_path)
-  call ecgrid_init()
+  call ifsgrid_init()
 
   select case (test_case)
   case ('steady_geostrophic_flow')
@@ -50,8 +50,8 @@ program ecgrid_swm_driver
 
   call set_initial_condition(static, states(1))
 
-  call ecgrid_run()
+  call ifsgrid_run()
 
-  call ecgrid_final()
+  call ifsgrid_final()
 
-end program ecgrid_swm_driver
+end program ifsgrid_swm_driver

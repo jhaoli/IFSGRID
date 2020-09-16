@@ -1,0 +1,15 @@
+[submodule "lib/container"]
+	path = lib/container
+	url = https://github.com/dongli/fortran-container.git
+[submodule "lib/datetime"]
+	path = lib/datetime
+	url = https://github.com/dongli/fortran-datetime.git
+[submodule "lib/fiona"]
+	path = lib/fiona
+	url = https://github.com/dongli/fiona.git
+[submodule "lib/flogger"]
+	path = lib/flogger
+	url = https://github.com/dongli/flogger.git
+[submodule "lib/string"]
+	path = lib/string
+	url = https://github.com/dongli/fortran-string.git
